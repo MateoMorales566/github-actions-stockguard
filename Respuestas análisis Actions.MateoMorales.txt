@@ -1,0 +1,44 @@
+ESPUESTAS DE ANÁLISIS - GITHUB ACTIONS
+Repositorio: github-actions-stockguard
+
+1. Identifica una ejecución exitosa y una fallida. ¿Qué commit o cambio produjo cada una y qué step determinó el resultado?
+
+La ejecución fallida fue causada por el commit 86fedc0, donde cambié intencionalmente la prueba de stock crítico para que esperara "NORMAL" en lugar de "CRITICO". El step que determinó el fallo fue "Ejecutar pruebas". Después corregí la prueba en el commit 388e392 y la ejecución volvió a ser exitosa.
+
+2. ¿Por qué ejecutar pytest localmente no reemplaza ejecutar pytest en GitHub Actions?
+
+Porque en mi computador las dependencias y configuraciones ya pueden estar instaladas. GitHub Actions ejecuta las pruebas en un entorno limpio, así que también permite detectar problemas de rutas, dependencias o configuración que localmente pueden pasar desapercibidos.
+
+3. ¿Qué riesgo tendría hacer merge a main sin esperar los checks del Pull Request?
+
+Podría integrar código con errores y afectar la versión estable del proyecto. Esperar los checks permite confirmar que las pruebas y validaciones pasan antes de mezclar los cambios con main.
+
+4. En tu ejecución fallida, copia solo la línea esencial del error y explica qué te permitió diagnosticar.
+
+AssertionError: assert 'CRITICO' == 'NORMAL'
+
+Esta línea me mostró que la función estaba devolviendo "CRITICO", pero la prueba esperaba "NORMAL". Así pude identificar inmediatamente que el problema estaba en el resultado esperado de la prueba.
+
+5. ¿Qué diferencia existe entre un step que usa uses: y uno que utiliza run:?
+
+uses: ejecuta una acción ya preparada, por ejemplo actions/checkout para descargar el repositorio. run: ejecuta directamente un comando, como python -m pytest -v.
+
+6. ¿Qué información aporta ${{ github.actor }} en run-name y por qué puede ser útil en un proyecto en equipo?
+
+Muestra qué usuario inició la ejecución del workflow. En un proyecto en equipo sirve para dejar evidencia de quién realizó o disparó una ejecución.
+
+7. Si tu workflow pasa pero la aplicación completa falla localmente con Docker, ¿significa que Actions “no sirve”? Explica qué está verificando y qué no.
+
+No. Actions solamente verifica lo que configuramos en el workflow. Puede comprobar sintaxis y pruebas, pero si no levantamos Kafka, Spark o todos los contenedores, no está comprobando el funcionamiento completo de la aplicación.
+
+8. Propón tres checks para tu variante de RapidGo. Para cada uno explica qué error concreto evitaría.
+
+Primero, ejecutar pytest sobre las reglas SLA para detectar errores en los cálculos de cumplimiento y alertas. Segundo, validar el contrato JSON para impedir eventos incompletos o con campos inválidos. Tercero, ejecutar docker compose config --quiet para detectar errores de configuración en Docker antes de integrar los cambios.
+
+9. ¿Cuál de esos checks debería implementarse primero y por qué?
+
+Implementaría primero pytest sobre las reglas SLA, porque la lógica del SLA es una parte central de nuestra variante y puede probarse rápidamente sin tener que levantar Kafka o Spark.
+
+10. ¿Qué prueba sería demasiado costosa o frágil para ejecutar en cada push y cómo la validarías entonces?
+
+Levantar todo el pipeline Kafka + Spark + Data Lake, y más adelante Airflow, sería demasiado pesado para cada push. Lo validaría localmente con Docker y también mediante una ejecución manual antes de cada entrega o release.
